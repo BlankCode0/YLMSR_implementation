@@ -1,0 +1,18 @@
+[
+  {
+    "prompt": "Explain quantum physics to a kid.",
+    "chosen": "Quantum physics is like magic...",
+    "rejected": "Quantum physics is about the particles..."
+  },
+  {
+    "prompt": "Why is the sky blue?",
+    "chosen": "The sky appears blue because molecules in the air scatter blue light...",
+    "rejected": "The sky is blue because it just is..."
+  },
+  {
+    "prompt": "Tell me about gravity.",
+    "chosen": "Gravity is a force that pulls two objects toward each other...",
+    "rejected": "Gravity makes things fall down."
+  }
+]
+
