@@ -1,3 +1,5 @@
+# used to check the response of the gpt2 model
+
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
 
