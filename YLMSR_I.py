@@ -9,7 +9,7 @@
 # train policy model
 ! python train_dpo.py
 
-# check if model is safe properly
+# check if model is saved properly
 !ls models/policy_model/
 
 # run test to check the responce between ref model and policy model
