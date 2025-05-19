@@ -16,9 +16,8 @@ We fine-tune a policy language model (π_θ) using preference data **without tra
 - Loading GPT-2 policy and reference models via HuggingFace
 - Custom `compute_log_probs()` to extract token-level log-probs
 - DPO loss implemented:  
-  \[
-  \mathcal{L}_{\text{DPO}} = -\log \sigma \left( \beta \left( \log \frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)} - \log \frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)} \right) \right)
-  \]
+  L_DPO = -log σ [ β ( log π_θ(y_w | x) - log π_ref(y_w | x) 
+                        - log π_θ(y_l | x) + log π_ref(y_l | x) ) ]
 - Fine-tuning policy model weights on preference examples
 - Saving and loading local model checkpoints
 - `generate()` script to compare π_ref and π_θ model outputs
