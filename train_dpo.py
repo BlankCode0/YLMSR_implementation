@@ -10,7 +10,7 @@ model_name = "gpt2"
 
 # Load tokenizer and models
 tokenizer = AutoTokenizer.from_pretrained(model_name)
-tokenizer.pad_token = tokenizer.eos_token  # GPT2 has no pad_token
+tokenizer.pad_token = tokenizer.eos_token
 
 ref_model = AutoModelForCausalLM.from_pretrained(model_name).to(device)
 policy_model = AutoModelForCausalLM.from_pretrained(model_name).to(device)
@@ -51,6 +51,7 @@ for epoch in range(epochs):
         optimizer.step()
 
         total_loss += loss.item()
+        ## to check gradient
         # print("Grad norm:", policy_model.transformer.h[0].mlp.c_fc.weight.grad.norm().item())
 
     print(f"Epoch {epoch+1}/{epochs} - Loss: {total_loss:.4f}")
