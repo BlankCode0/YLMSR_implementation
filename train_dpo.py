@@ -1,48 +1,66 @@
-from utils import load_preference_data
-from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
-#calculate log probabilities
-from utils import compute_log_probs
-import torch
-# Dpo loss
+from transformers import AutoTokenizer, AutoModelForCausalLM
+from torch.optim import AdamW
+from utils import load_preference_data, compute_log_probs
 from dpo_loss import dpo_loss
 
-
-dataset = load_preference_data("data/sample_data.json")
-print(f"Loaded {len(dataset)} samples.")
-print("Sample 1:")
-print(f"Prompt:   {dataset[0]['prompt']}")
-print(f"Chosen:   {dataset[0]['chosen']}")
-print(f"Rejected: {dataset[0]['rejected']}")
-
-
-# Loading GPT2
-
+# Setup
 device = "cuda" if torch.cuda.is_available() else "cpu"
-tokenizer = AutoTokenizer.from_pretrained("gpt2")
-policy_model = AutoModelForCausalLM.from_pretrained("gpt2").to(device)
-ref_model = AutoModelForCausalLM.from_pretrained("gpt2").to(device)
-policy_model.eval()
+model_name = "gpt2"
+
+# Load tokenizer and models
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+tokenizer.pad_token = tokenizer.eos_token  # GPT2 has no pad_token
+
+ref_model = AutoModelForCausalLM.from_pretrained(model_name).to(device)
+policy_model = AutoModelForCausalLM.from_pretrained(model_name).to(device)
+
 ref_model.eval()
+for p in ref_model.parameters():
+    p.requires_grad = False
 
-sample = dataset[0]
-prompt = sample["prompt"]
-chosen = sample["chosen"]
-rejected = sample["rejected"]
+# Load dataset
+dataset = load_preference_data("data/sample_data.json")
 
-logp_pi_c = compute_log_probs(policy_model, tokenizer, prompt, chosen, device)
-logp_pi_r = compute_log_probs(policy_model, tokenizer, prompt, rejected, device)
-logp_ref_c = compute_log_probs(ref_model, tokenizer, prompt, chosen, device)
-logp_ref_r = compute_log_probs(ref_model, tokenizer, prompt, rejected, device)
+# Optimizer
+optimizer = AdamW(policy_model.parameters(), lr=1e-5)
+epochs = 3
+beta = 0.1
 
-# Convert to tensor
-logp_pi_c = torch.tensor([logp_pi_c]).to(device)
-logp_pi_r = torch.tensor([logp_pi_r]).to(device)
-logp_ref_c = torch.tensor([logp_ref_c]).to(device)
-logp_ref_r = torch.tensor([logp_ref_r]).to(device)
+# Training loop
+for epoch in range(epochs):
+    total_loss = 0
+    for sample in dataset:
+        prompt = sample["prompt"]
+        chosen = sample["chosen"]
+        rejected = sample["rejected"]
 
-loss = dpo_loss(logp_pi_c, logp_ref_c, logp_pi_r, logp_ref_r, beta=0.1)
+        # Compute log probabilities
+        logp_pi_c = compute_log_probs(policy_model, tokenizer, prompt, chosen, device)
+        logp_pi_r = compute_log_probs(policy_model, tokenizer, prompt, rejected, device)
 
-print(f"\n💣 DPO Loss: {loss.item():.4f}")
+        logp_ref_c = compute_log_probs(ref_model, tokenizer, prompt, chosen, device, detach=True)
+        logp_ref_r = compute_log_probs(ref_model, tokenizer, prompt, rejected, device, detach=True)
 
+        # Loss
+        loss = dpo_loss(logp_pi_c, logp_ref_c, logp_pi_r, logp_ref_r, beta)
+
+        # Backpropagation
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+        total_loss += loss.item()
+        # print("Grad norm:", policy_model.transformer.h[0].mlp.c_fc.weight.grad.norm().item())
+
+    print(f"Epoch {epoch+1}/{epochs} - Loss: {total_loss:.4f}")
+
+# Save trained model
+policy_model.save_pretrained("models/policy_model")
+tokenizer.save_pretrained("models/policy_model")
+
+ref_model.save_pretrained("models/ref_model")
+tokenizer.save_pretrained("models/ref_model")
+
+print("✅ Model saved to models/policy_model")
 
