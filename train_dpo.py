@@ -20,11 +20,11 @@ for p in ref_model.parameters():
     p.requires_grad = False
 
 # Load dataset
-dataset = load_preference_data("data/sample_data.json")
+dataset = load_preference_data("data/imdb_generated_pairs.json")
 
 # Optimizer
 optimizer = AdamW(policy_model.parameters(), lr=1e-5)
-epochs = 3
+epochs = 50
 beta = 0.1
 
 # Training loop

@@ -11,7 +11,7 @@ model = AutoModelForCausalLM.from_pretrained(model_path).to(device)
 tokenizer = AutoTokenizer.from_pretrained(model_path)
 
 # Prompt
-prompt = "Explain black holes to a child."
+prompt = "If only to avoid making this type of film in the future. This film is interesting as an experiment but tells no cogent story.<br /><br />One might feel virtuous for sitting thru it because it touches on so many IMPORTANT"
 
 # Tokenize
 inputs = tokenizer(prompt, return_tensors="pt").to(device)

@@ -23,7 +23,7 @@ def generate_response(model_path, prompt, max_new_tokens=100, temperature=0.7):
     return generated
 
 if __name__ == "__main__":
-    prompt = "Why is the sky blue?"
+    prompt = "I would put this at the top of my list of films in the category of unwatchable trash! There are films that are bad, but the worst kind are the ones that are unwatchable but you are suppose to like."
 
     print("\n🔵 Before fine-tuning (Reference Model):")
     print(generate_response("gpt2", prompt))
